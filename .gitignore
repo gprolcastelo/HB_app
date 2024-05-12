@@ -1,0 +1,8 @@
+# Ignore virtual environment
+venv/
+
+# Ignore all files inside outfiles directory
+outfiles/*
+# But keep the directory
+!outfiles/.gitkeep
+
