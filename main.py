@@ -14,7 +14,10 @@ sys.path.insert(0, setupBaseDir)
 import importlib
 FIRST_PART = importlib.import_module("FIRST_PART")
 
-app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP], suppress_callback_exceptions=True, assets_folder=os.path.join(setupBaseDir, "src"))
+app = dash.Dash(__name__,
+                external_stylesheets=[dbc.themes.BOOTSTRAP],
+                suppress_callback_exceptions=True,
+                assets_folder=os.path.join(setupBaseDir, "src"))
 
 # Setup base directory and paths
 dpath_template = os.path.join(setupBaseDir, 'excel_template', 'template.xlsx')
@@ -23,37 +26,68 @@ dpath_outfiles = os.path.join(setupBaseDir, 'outfiles')
 # Define a new dbc.Tab for the About section with detailed content
 about_content = html.Div([
     html.Br(),
-    html.P("The model was developed by the Childhood Liver Oncology Group (c-LOG) at Institut d’Investigació Germans Trias i Pujol (IGTP)."),
-    html.P("The Childhood Liver Oncology Group (c-LOG) is a pioneering group focused on translational research of paediatric liver cancer in Spain. Its main goals are to increase the molecular knowledge of hepatoblastoma, the main liver cancer in children and an extremely rare disease. The group aims to understand why these tumors arise in children and to identify biomarkers and therapeutic targets to improve quality of life and survival of patients with primary liver cancer. In 2010, the group created the first national collection of biospecimens from patients with liver cancer, CLCN, which includes samples from adult patients with hepatocellular carcinoma, cirrhosis, and chronic hepatitis. The CLCN collection is pivotal for the research conducted by c-LOG, benefiting from its participation in the Pediatric Hepatic International Tumor Trial (PHITT) and collaborations with over 100 European hospitals."),
+    html.P("The model was developed by the Childhood Liver Oncology Group (c-LOG) "+
+           "at Institut d’Investigació Germans Trias i Pujol (IGTP)."),
+    html.P("The Childhood Liver Oncology Group (c-LOG) is a pioneering group focused on translational "+
+           "research of paediatric liver cancer in Spain. Its main goals are to increase the molecular "+
+           "knowledge of hepatoblastoma, the main liver cancer in children and an extremely rare disease. "+
+           "The group aims to understand why these tumors arise in children and to identify biomarkers and "+
+           "therapeutic targets to improve quality of life and survival of patients with primary liver cancer. "+
+           "In 2010, the group created the first national collection of biospecimens from patients with liver cancer, "+
+           "CLCN, which includes samples from adult patients with hepatocellular carcinoma, cirrhosis, "+
+           "and chronic hepatitis. The CLCN collection is pivotal for the research conducted by c-LOG, "+
+           "benefiting from its participation in the Pediatric Hepatic International Tumor Trial (PHITT) "+
+           "and collaborations with over 100 European hospitals."),
     html.Div([
         html.P("Group Leader: Carolina Armengol, ", style={'display': 'inline'}),
         html.A("carmengol@igtp.cat", href="mailto:carmengol@igtp.cat", style={'display': 'inline'})
     ]),
     html.Br(),
-    html.A("More about c-LOG", href="https://www.germanstrias.org/es/research/cancer/2/oncologia-hepatica-infantil-c-log", target="_blank"),
+    html.A("More about c-LOG",
+           href="https://www.germanstrias.org/es/research/cancer/2/oncologia-hepatica-infantil-c-log",
+           target="_blank"),
     html.Hr(),
-    html.P("The web service was developed by the Machine Learning for Biomedical Research (ML4BioMedR) unit at the Barcelona Supercomputing Center (BSC)."),
-    html.P("The Machine Learning for Biomedical Research Unit applies machine learning to biomedical problems, generating tools and resources for research and secondary data use. It supports projects in precision medicine, genomics, and systems biology, leveraging high-performance computing and collaboration with specialized groups at BSC. The Unit offers consultancy and technical advice in machine learning, develops its own projects, and participates in initiatives like BSC Bioinfo4Women and the ELIXIR Machine Learning Focus Group."),
+    html.P("The web service was developed by the Machine Learning for Biomedical Research (ML4BioMedR) unit at "+
+           "the Barcelona Supercomputing Center (BSC)."),
+    html.P("The Machine Learning for Biomedical Research Unit applies machine learning to biomedical problems, " +
+           "generating tools and resources for research and secondary data use. It supports projects in precision " +
+           "medicine, genomics, and systems biology, leveraging high-performance computing and collaboration with " +
+           "specialized groups at BSC. The Unit offers consultancy and technical advice in machine learning, " +
+           "develops its own projects, and participates in initiatives like BSC Bioinfo4Women and the ELIXIR " +
+           "Machine Learning Focus Group."),
     html.Div([
         html.P("Group Leader: Davide Cirillo, ", style={'display': 'inline'}),
         html.A("davide.cirillo@bsc.es", href="mailto:davide.cirillo@bsc.es", style={'display': 'inline'})
     ]),
     html.Br(),
-    html.A("More about ML4BioMedR", href="https://www.bsc.es/discover-bsc/organisation/research-departments/machine-learning-biomedical-research", target="_blank")
+    html.A("More about ML4BioMedR",
+           href="https://www.bsc.es/discover-bsc/organisation/research-departments/machine-learning-biomedical-research",
+           target="_blank")
 ])
 
 
 # Layout
 app.layout = dbc.Container([
     dbc.Row([  # Banner with title and logos
-        dbc.Col(html.Img(src=app.get_asset_url("BSC_logo.png"), height="100px"), width=3, align="center"),
-        dbc.Col(html.H1("Hepatoblastoma Classifier", className="text-center", style={'font-weight': 'bold'}), width=6),
-        dbc.Col(html.Img(src=app.get_asset_url("IGTP_logo.jpg"), height="150px"), width=3, align="center"),
+        dbc.Col(html.Img(src=app.get_asset_url("BSC_logo.png"), height="100px"),
+                width=3,
+                align="left"),
+        dbc.Col(html.H1("Hepatoblastoma Classifier",
+                        className="text-center",
+                        style={'font-weight': 'bold'}),
+                width=6,
+                align="center"),
+        dbc.Col(html.Img(src=app.get_asset_url("IGTP_logo.jpg"), height="150px"),
+                width=3,
+                align="right"),
     ], className="mb-4"),  # Adds bottom margin to the banner row
     dbc.Row([
         dbc.Col([  # Left column for uploads and operations
             html.Div([
-                dbc.Button("Download Excel Template", id="btn_download", color="primary", className="mb-2"),
+                dbc.Button("Download Excel Template",
+                           id="btn_download",
+                           color="primary",
+                           className="mb-2"),
                 dcc.Download(id="download-excel"),
                 dcc.Upload(
                     id='upload-data',
@@ -125,6 +159,7 @@ def update_output(content):
     Input('store-classification-results', 'data'),
     prevent_initial_call=True
 )
+
 def render_tab_content(active_tab, data):
     if active_tab != "tab-results" or data is None:
         return None
@@ -136,4 +171,4 @@ def render_tab_content(active_tab, data):
     ])
 
 if __name__ == '__main__':
-    app.run_server(host='0.0.0.0', port=8050, debug=True)
+    app.run_server(host='127.0.0.1', port=8050, debug=True)
