@@ -1,13 +1,12 @@
-import dash
-from dash import html, dcc, Input, Output, callback
+import dash, os, sys, random, base64, xlsxwriter
+from dash import html, dcc, Input, Output, callback, State
 import dash_bootstrap_components as dbc
 from dash.exceptions import PreventUpdate
 import pandas as pd
-import os
-import sys
-import random
-import base64
 from io import BytesIO
+
+# global season_id
+season_id = random.randint(0, 999999)
 
 setupBaseDir = os.path.dirname(__file__)
 sys.path.insert(0, setupBaseDir)
@@ -17,9 +16,11 @@ FIRST_PART = importlib.import_module("FIRST_PART")
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP], suppress_callback_exceptions=True, assets_folder=os.path.join(setupBaseDir, "src"))
 
 # Setup base directory and paths
+global dpath_template, dpath_outfiles, results_path
 dpath_template = os.path.join(setupBaseDir, 'excel_template', 'template.xlsx')
 dpath_outfiles = os.path.join(setupBaseDir, 'outfiles')
-
+result_filename = f"classification_results_{season_id}.xlsx"
+results_path = os.path.join(dpath_outfiles, result_filename)
 # Define a new dbc.Tab for the About section with detailed content
 about_content = html.Div([
     html.Br(),
@@ -91,8 +92,10 @@ def download_template(n_clicks):
     return dcc.send_file(dpath_template)
 
 @app.callback(
-    [Output('store-classification-results', 'data'),
-     Output('preview-upload', 'children')],
+    [
+        Output('store-classification-results', 'data'),
+        Output('preview-upload', 'children')
+    ],
     Input('upload-data', 'contents'),
     prevent_initial_call=True
 )
@@ -104,12 +107,15 @@ def update_output(content):
     df = pd.read_excel(BytesIO(decoded), engine='openpyxl')
 
     # Save the uploaded Excel file to disk
-    outfilename = f"output_{random.randint(10000, 99999)}.xlsx"
+    outfilename = f"output_{season_id}.xlsx"
     output_path = os.path.join(dpath_outfiles, outfilename)
     df.to_excel(output_path, index=False)
 
     # Pass the file path to FIRST_PART.process_excel
     classification_df = FIRST_PART.process_excel(output_path)
+
+    # Save the classification results to an Excel file
+    classification_df.to_excel(results_path, index=False)
 
     preview = html.Div([
         html.Br(),
@@ -125,6 +131,7 @@ def update_output(content):
     Input('store-classification-results', 'data'),
     prevent_initial_call=True
 )
+
 def render_tab_content(active_tab, data):
     if active_tab != "tab-results" or data is None:
         return None
@@ -132,8 +139,23 @@ def render_tab_content(active_tab, data):
         html.Br(),
         dbc.Table.from_dataframe(pd.DataFrame(data), striped=True, bordered=True, hover=True),
         html.Br(),
+        dbc.Button("Download Results", id="btn_download_results", color="primary", className="mb-2"),
+        dcc.Download(id="download-results"),
+        html.Br(),
         html.P("Some explanations here.")
     ])
 
+# Download results as an excel file
+@app.callback(
+    Output('download-results', 'data'),
+    Input('btn_download_results', 'n_clicks'),
+    prevent_initial_call=True
+)
+def download_results(n_clicks):
+    if n_clicks is None:
+        raise PreventUpdate
+
+    return dcc.send_file(results_path)
+
 if __name__ == '__main__':
-    app.run_server(host='0.0.0.0', port=8050, debug=True)
+    app.run_server(host='127.0.0.1', port=8050, debug=True)
