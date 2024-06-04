@@ -6,6 +6,6 @@ outfiles/*
 # But keep the directory
 !outfiles/.gitkeep
 
-*.ppt*
 .idea
 __pycache__
+*.pptx

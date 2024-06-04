@@ -80,6 +80,7 @@ def classify_epi_qualu(t_cols,qualu_val):
     return classification
 
 def classify_epi_cpg(t_cols,cpg_val):
+    print('cpg_val:',cpg_val)
     classification = {}
     for col in t_cols:
         # When ((1-mean CpGs T/mean CpGs all the NT)*100) > 6.6, then Epi-CB
@@ -133,7 +134,10 @@ def process_excel(input_file):
     classifications_cpg = classify_epi_cpg(t_cols,cpg_values)
     classifications_qualu = classify_epi_qualu(t_cols,qualu_values)
     classifications_mrs = classify_mrs(t_cols, classifications_14q32, classifications_qualu, classifications_c1c2)
-
+    print('classifications_c1c2:',classifications_c1c2)
+    print('classifications_14q32:',classifications_14q32)
+    print('classifications_cpg:',classifications_cpg)
+    print('classifications_qualu:',classifications_qualu)
     # Merge the classifications with column classifications
     for col in classifications_c1c2:
         classifications_c1c2[col] = (classifications_c1c2[col][0],
