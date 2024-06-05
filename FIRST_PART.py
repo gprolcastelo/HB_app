@@ -60,6 +60,7 @@ def classify_c1c2(scores, total_genes, vim_values):
     return classifications
 
 def classify_14q32(data, t_cols):
+
     classification = {}
     for col in t_cols:
         # Number of 14q32-genes overexpressed: T/NT >=10
@@ -71,16 +72,17 @@ def classify_epi_qualu(t_cols,qualu_val):
     classification = {}
     for col in t_cols:
         # When Percentage of UnMethylated Alu (PUMA) > 9.67, then Epi-CB
+        # print('qualu_val:',qualu_val[col])
         if pd.isna(qualu_val[col]):
             classification[col] = pd.NA
-        elif qualu_val[col] * 100 > 9.67:
+        elif qualu_val[col] > 9.67:
             classification[col] = 'Epi-CB'
         else:
             classification[col] = 'Epi-CA'
     return classification
 
 def classify_epi_cpg(t_cols,cpg_val):
-    print('cpg_val:',cpg_val)
+    # print('cpg_val:',cpg_val)
     classification = {}
     for col in t_cols:
         # When ((1-mean CpGs T/mean CpGs all the NT)*100) > 6.6, then Epi-CB
@@ -92,12 +94,18 @@ def classify_epi_cpg(t_cols,cpg_val):
             classification[col] = 'Epi-CA'
     return classification
 
-def classify_mrs(t_cols, class_14q32, class_epi, class_c1c2):
+def classify_mrs(t_cols, class_14q32, class_cpg, class_qualu, class_c1c2):
+
     classification = {}
     for col in t_cols:
-        # Strong 14q32 overexpression
+        class_epi = class_cpg if pd.isna(class_qualu[col]) else class_qualu
+        # print('class_14q32[col]:',class_14q32[col])
+        # print('class_epi[col]:',class_epi[col])
+        # print('class_c1c2[col]:',class_c1c2[col][0])
+        # If any of the classifications is missing, then the final classification is missing
         if pd.isna(class_14q32[col]) or pd.isna(class_epi[col]) or pd.isna(class_c1c2[col]):
             classification[col] = pd.NA
+        # Strong 14q32 overexpression
         elif class_14q32[col] == 'Strong':
             # Epi-CB
             if class_epi[col] == 'Epi-CB':
@@ -108,8 +116,8 @@ def classify_mrs(t_cols, class_14q32, class_epi, class_c1c2):
                 classification[col] = 'MRS-2'
         # Moderate 14q32 overexpression
         else:
-            classification[col] = 'MRS-2' if class_epi[col][0] == 'Epi-CB' else 'MRS-1'
-
+            classification[col] = 'MRS-2' if class_epi[col] == 'Epi-CB' else 'MRS-1'
+        # print('classification[col]:',classification[col])
     return classification
 
 def process_excel(input_file):
@@ -126,18 +134,23 @@ def process_excel(input_file):
     cpg_values = data.loc['CpG_Array'].to_dict()
     cpg_values = {k: cpg_values[k] for k in t_cols if k in cpg_values}
     # Get Qualu values
-    qualu_values = data.loc['Qualu'].to_dict()
+    qualu_values = data_op.loc['Qualu'].to_dict()
     qualu_values = {k: qualu_values[k] for k in t_cols if k in qualu_values}
 
     classifications_c1c2 = classify_c1c2(scores, 16, vim_values)
     classifications_14q32 = classify_14q32(data, t_cols)
     classifications_cpg = classify_epi_cpg(t_cols,cpg_values)
     classifications_qualu = classify_epi_qualu(t_cols,qualu_values)
-    classifications_mrs = classify_mrs(t_cols, classifications_14q32, classifications_qualu, classifications_c1c2)
-    print('classifications_c1c2:',classifications_c1c2)
-    print('classifications_14q32:',classifications_14q32)
-    print('classifications_cpg:',classifications_cpg)
-    print('classifications_qualu:',classifications_qualu)
+
+    classifications_mrs = classify_mrs(t_cols=t_cols,
+                                       class_14q32=classifications_14q32,
+                                       class_cpg=classifications_cpg,
+                                       class_qualu=classifications_qualu,
+                                       class_c1c2=classifications_c1c2)
+    # print('classifications_c1c2:',classifications_c1c2)
+    # print('classifications_14q32:',classifications_14q32)
+    # print('classifications_cpg:',classifications_cpg)
+    # print('classifications_qualu:',classifications_qualu)
     # Merge the classifications with column classifications
     for col in classifications_c1c2:
         classifications_c1c2[col] = (classifications_c1c2[col][0],
