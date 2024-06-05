@@ -1,4 +1,4 @@
-import dash, os, sys, random, base64, xlsxwriter
+import dash, os, sys, random, base64
 from dash import html, dcc, Input, Output, callback, State
 import dash_bootstrap_components as dbc
 from dash.exceptions import PreventUpdate
