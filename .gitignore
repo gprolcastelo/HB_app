@@ -9,3 +9,4 @@ outfiles/*
 .idea
 __pycache__
 *.pptx
+*.ipynb
