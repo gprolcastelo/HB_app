@@ -18,7 +18,12 @@ def read_and_prepare_data(file_path):
         data['Mean_NT'] = data[nt_cols].mean(axis=1)
         # Normalize T columns by the mean of NT columns
         for col in t_cols:
-            data[col] = data[col] / data['Mean_NT']
+            # For the CpG_Array row formula is different: [1-(T/mean NT)]
+            if 'CpG_Array' in data.index:
+                data.loc['CpG_Array', col] = 1 - data.loc['CpG_Array', col] / data.loc['CpG_Array', 'Mean_NT']
+            else:
+                data[col] = data[col] / data['Mean_NT']
+    # For the CpG_Array row formula is different: [1-(T/mean NT)]
     # Return:
     # - the normalized data: tumor/mean(non-tumor) ratio
     # - the list of T columns
@@ -85,10 +90,10 @@ def classify_epi_cpg(t_cols,cpg_val):
     # print('cpg_val:',cpg_val)
     classification = {}
     for col in t_cols:
-        # When ((1-mean CpGs T/mean CpGs all the NT)*100) > 6.6, then Epi-CB
+        # When ((1-mean CpGs T/mean CpGs all the NT)*100) > 6.64, then Epi-CB
         if pd.isna(cpg_val[col]):
             classification[col] = pd.NA
-        elif cpg_val[col] * 100 > 6.6:
+        elif cpg_val[col] * 100 > 6.64:
             classification[col] = 'Epi-CB'
         else:
             classification[col] = 'Epi-CA'
