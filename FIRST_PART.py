@@ -27,7 +27,7 @@ def read_and_prepare_data(file_path):
     # Return:
     # - the normalized data: tumor/mean(non-tumor) ratio
     # - the list of T columns
-    return data_op, data, t_cols
+    return data_op, data, t_cols, nt_cols
 
 def calculate_scores(data, t_cols):
     '''
@@ -73,14 +73,14 @@ def classify_14q32(data, t_cols):
         classification[col] = 'Strong' if genes_overexpressed >= 1 else 'Moderate'
     return classification
 
-def classify_epi_qualu(t_cols,qualu_val):
+def classify_epi_qualu(t_cols,qualu_val,mean_nt_puma):
     classification = {}
     for col in t_cols:
-        # When Percentage of UnMethylated Alu (PUMA) > 9.67, then Epi-CB
+        # When Percentage of UnMethylated Alu (PUMA) > 7.17+ mean NT, then Epi-CB
         # print('qualu_val:',qualu_val[col])
         if pd.isna(qualu_val[col]):
             classification[col] = pd.NA
-        elif qualu_val[col] > 9.67:
+        elif qualu_val[col] > 7.17 + mean_nt_puma:
             classification[col] = 'Epi-CB'
         else:
             classification[col] = 'Epi-CA'
@@ -127,7 +127,7 @@ def classify_mrs(t_cols, class_14q32, class_cpg, class_qualu, class_c1c2):
 
 def process_excel(input_file):
     # Calculate
-    data_op, data, t_cols = read_and_prepare_data(input_file)
+    data_op, data, t_cols, nt_cols = read_and_prepare_data(input_file)
     scores = calculate_scores(data, t_cols)  # Dynamic split
 
     # Get VIM values
@@ -139,13 +139,13 @@ def process_excel(input_file):
     cpg_values = data.loc['CpG_Array'].to_dict()
     cpg_values = {k: cpg_values[k] for k in t_cols if k in cpg_values}
     # Get Qualu values
-    qualu_values = data_op.loc['Qualu'].to_dict()
+    qualu_values = data_op.loc['PUMA_value'].to_dict()
     qualu_values = {k: qualu_values[k] for k in t_cols if k in qualu_values}
 
     classifications_c1c2 = classify_c1c2(scores, 16, vim_values)
     classifications_14q32 = classify_14q32(data, t_cols)
     classifications_cpg = classify_epi_cpg(t_cols,cpg_values)
-    classifications_qualu = classify_epi_qualu(t_cols,qualu_values)
+    classifications_qualu = classify_epi_qualu(t_cols,qualu_values,data['Mean_NT']['PUMA_value'])
 
     classifications_mrs = classify_mrs(t_cols=t_cols,
                                        class_14q32=classifications_14q32,
