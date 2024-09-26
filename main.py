@@ -8,7 +8,7 @@ from jinja2 import Template
 # print current directory, absolute path
 print(os.path.abspath(os.curdir))
 # Read the markdown file
-with open('/home/user/DASH/HB_app/tutorial.md', 'r') as file:
+with open('tutorial.md', 'r') as file:
     tutorial_content = file.read()
 
 
