@@ -13,4 +13,4 @@ import sys, os
 setupBaseDir = os.path.dirname(__file__)
 sys.path.insert(0, setupBaseDir)
 
-from app import server as application
+from main import server as application
