@@ -19,7 +19,7 @@ def read_and_prepare_data(file_path):
         # Normalize T columns by the mean of NT columns
         for col in t_cols:
             # For the CpG_Array row formula is different: [1-(T/mean NT)]
-            if 'CpG_Array' in data.index:
+            if not data.loc['CpG_Array'].isna().all():
                 data.loc['CpG_Array', col] = 1 - data.loc['CpG_Array', col] / data.loc['CpG_Array', 'Mean_NT']
             else:
                 data[col] = data[col] / data['Mean_NT']
