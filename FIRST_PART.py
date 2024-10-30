@@ -8,22 +8,23 @@ hk_genes = ['ACTGA1', 'EEF1A1', 'PNN', 'RHOT2'] # 5 genes
 def read_and_prepare_data(file_path):
     # Load the dataset, assuming the first column is 'GENE'
     data_op = pd.read_excel(file_path, engine='openpyxl', index_col=0)
-    data = data_op.copy()
     # Separate 'T' and 'NT' columns dynamically
-    t_cols = [col for col in data.columns if col.startswith('T')]
-    nt_cols = [col for col in data.columns if col.startswith('NT')]
+    t_cols = [col for col in data_op.columns if col.startswith('T')]
+    nt_cols = [col for col in data_op.columns if col.startswith('NT')]
+    data = pd.DataFrame([], index=data_op.index, columns=data_op[t_cols].columns.tolist()+['Mean_NT'])
 
     # Calculate the mean of NT columns
     if nt_cols:
-        data['Mean_NT'] = data[nt_cols].mean(axis=1)
-        # Normalize T columns by the mean of NT columns
-        for col in t_cols:
-            # For the CpG_Array row formula is different: [1-(T/mean NT)]
-            if not data.loc['CpG_Array'].isna().all():
-                data.loc['CpG_Array', col] = 1 - data.loc['CpG_Array', col] / data.loc['CpG_Array', 'Mean_NT']
-            else:
-                data[col] = data[col] / data['Mean_NT']
-    # For the CpG_Array row formula is different: [1-(T/mean NT)]
+        mean_nt = data_op[nt_cols].mean(axis=1)
+        data['Mean_NT'] = mean_nt
+    else:
+        raise ValueError('No NT columns found in the dataset')
+    # Normalize T columns by the mean of NT columns
+    for col in t_cols:
+        data[col] = data_op[col] / mean_nt
+    # For the CpG_Array row formula is different: [1-(T/mean NT)]:
+    data.loc['CpG_Array'] = 1 - data_op.loc['CpG_Array'][t_cols]/mean_nt.loc['CpG_Array']
+
     # Return:
     # - the normalized data: tumor/mean(non-tumor) ratio
     # - the list of T columns
@@ -83,7 +84,7 @@ def classify_epi_qualu(t_cols,qualu_val,mean_nt_puma):
         elif qualu_val[col] > 7.17 + mean_nt_puma:
             classification[col] = 'Epi-CB'
         else:
-            classification[col] = 'Epi-CA'
+            classification[col] = 'Non-Epi-CB'
     return classification
 
 def classify_epi_cpg(t_cols,cpg_val):
@@ -93,7 +94,7 @@ def classify_epi_cpg(t_cols,cpg_val):
         # When ((1-mean CpGs T/mean CpGs all the NT)*100) > 6.64, then Epi-CB
         if pd.isna(cpg_val[col]):
             classification[col] = pd.NA
-        elif cpg_val[col] * 100 > 6.64:
+        elif cpg_val[col] * 100 > 6.6:
             classification[col] = 'Epi-CB'
         else:
             classification[col] = 'Epi-CA'
