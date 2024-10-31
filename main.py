@@ -8,8 +8,8 @@ from jinja2 import Template
 # print current directory, absolute path
 print(os.path.abspath(os.curdir))
 # Read the markdown file
-with open('tutorial.md', 'r') as file:
-    tutorial_content = file.read()
+# with open('tutorial.md', 'r') as file:
+#     tutorial_content = file.read()
 
 
 # global season_id
@@ -20,11 +20,8 @@ sys.path.insert(0, setupBaseDir)
 import importlib
 FIRST_PART = importlib.import_module("FIRST_PART")
 
-app = dash.Dash(__name__,
-                external_stylesheets=[dbc.themes.BOOTSTRAP],
-                suppress_callback_exceptions=True,
-                assets_folder=os.path.join(setupBaseDir, "src"))
-
+app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP], suppress_callback_exceptions=True, assets_folder=os.path.join(setupBaseDir, "src"),title="MRS Classifier")
+server = app.server
 # Setup base directory and paths
 global dpath_template, dpath_outfiles, results_path
 dpath_template = os.path.join(setupBaseDir, 'excel_template', 'template_blank.xlsx')
@@ -77,18 +74,10 @@ about_content = html.Div([
 # Layout
 app.layout = dbc.Container([
     dbc.Row([  # Banner with title and logos
-        dbc.Col(html.Img(src=app.get_asset_url("BSC_logo.png"), height="100px"),
-                width=3,
-                align="left"),
-        dbc.Col(html.H1("Hepatoblastoma Classifier",
-                        className="text-center",
-                        style={'font-weight': 'bold'}),
-                width=6,
-                align="center"),
-        dbc.Col(html.Img(src=app.get_asset_url("IGTP_logo.jpg"), height="150px"),
-                width=3,
-                align="right"),
-    ], className="mb-4"),  # Adds bottom margin to the banner row
+        dbc.Col(html.Img(src=app.get_asset_url("BSC_logo.png"), height="100px"), width=3, align="center"),
+        dbc.Col(html.Img(src=app.get_asset_url("logo_MRS-removebg-preview.png"), height="100px"), width=3, align="center"),
+        dbc.Col(html.Img(src=app.get_asset_url("IGTP_logo.jpg"), height="150px"), width=3, align="center"),
+    ], className="mb-4", justify="between"),  # Adds bottom margin to the banner row
     dbc.Row([
         dbc.Col([  # Left column for uploads and operations
             html.Div([
@@ -115,7 +104,7 @@ app.layout = dbc.Container([
             dcc.Store(id='store-classification-results'),  # Stores the classification results invisibly
             dbc.Tabs([
                 dbc.Tab(html.Div(id='tab-content-results'), label="Classification Results", tab_id="tab-results"),
-                dbc.Tab(dcc.Markdown(tutorial_content), label="Tutorial", tab_id="tab-tutorial"),
+                dbc.Tab("This will be the tutorial.", label="Tutorial", tab_id="tab-tutorial"),
                 dbc.Tab(about_content, label="About", tab_id="tab-about")
             ], id="tabs", active_tab="tab-results")
         ], width=8)
