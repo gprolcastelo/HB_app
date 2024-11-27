@@ -1,7 +1,9 @@
 import pandas as pd
 global c1genes, c2genes, vim_gene, fqt_genes, hk_genes
 c1genes= ['ALDH2', 'APCS', 'APOC4', 'AQP9', 'C1S', 'CYP2E1', 'GHR', 'HPD'] # 8 genes
+# ALDH2, APCS, APOC4, AQP9, C1S, CYP2E1, GHR, HPD
 c2genes = ['AFP', 'BUB1', 'DLG7', 'DUSP9', 'E2F5', 'IGSF1', 'NLE', 'RPL10A'] # 8 genes
+# AFP, BUB1 , DLG7, DUSP9, E2F5, IGSF1, NLE, RPL10A
 vim_gene = 'VIM' # 1 gene
 fqt_genes = ['DLK1', 'MEG3'] # 2 genes
 hk_genes = ['ACTGA1', 'EEF1A1', 'PNN', 'RHOT2'] # 5 genes
@@ -30,7 +32,7 @@ def read_and_prepare_data(file_path):
     # - the list of T columns
     return data_op, data, t_cols, nt_cols
 
-def calculate_scores(data, t_cols):
+def calculate_scores(data, t_cols,rnaseq_analysis=True):
     '''
     Given the expression ratio T/mean(NT), given by columns t_cols in data,
     count the number of upregulated and downregulated genes for C1, C2 classification.
@@ -40,13 +42,15 @@ def calculate_scores(data, t_cols):
     :param threshold_lower:
     :return: scores dictionary with column names as keys and scores as values
     '''
+    cutoff_c1 = 0.25 if rnaseq_analysis else 0.5
+    cutoff_c2 = 4 if rnaseq_analysis else 2
     scores = {}
     for col in t_cols:
         # Count the number of genes that are upregulated and downregulated
-        # downregulated: C1-genes with T/mean(NT) <= 0.5
-        downregulated = (data[col].loc[c1genes] <= 0.5).sum()
-        # upregulated: C2-genes with T/mean(NT) >= 2
-        upregulated = (data[col].loc[c2genes] >= 2).sum()
+        # downregulated: C1-genes with T/mean(NT) <= cutoff_c1
+        downregulated = (data[col].loc[c1genes] <= cutoff_c1).sum()
+        # upregulated: C2-genes with T/mean(NT) >= cutoff_c2
+        upregulated = (data[col].loc[c2genes] >= cutoff_c2).sum()
         scores[col] = downregulated + upregulated
     return scores
 
@@ -62,7 +66,7 @@ def classify_c1c2(scores, total_genes, vim_values):
             if vim_values[col] > 6.5:
                 classifications[col] = ('C2B', '')
             else:
-                classifications[col] = ('C2-Pure', '') 
+                classifications[col] = ('C2-Pure', '')
     return classifications
 
 def classify_14q32(data, t_cols):
@@ -126,11 +130,10 @@ def classify_mrs(t_cols, class_14q32, class_cpg, class_qualu, class_c1c2):
         # print('classification[col]:',classification[col])
     return classification
 
-def process_excel(input_file):
+def process_excel(input_file,rnaseq_analysis):
     # Calculate
     data_op, data, t_cols, nt_cols = read_and_prepare_data(input_file)
-    scores = calculate_scores(data, t_cols)  # Dynamic split
-
+    scores = calculate_scores(data, t_cols,rnaseq_analysis)  # Dynamic split
     # Get VIM values
     vim_values = data.loc[vim_gene].to_dict()
     # Exclude 'VIM' column and non-T columns from vim_values if present

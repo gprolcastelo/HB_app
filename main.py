@@ -5,12 +5,9 @@ from dash.exceptions import PreventUpdate
 import pandas as pd
 from io import BytesIO
 from jinja2 import Template
+
 # print current directory, absolute path
 print(os.path.abspath(os.curdir))
-# Read the markdown file
-# with open('tutorial.md', 'r') as file:
-#     tutorial_content = file.read()
-
 
 # global season_id
 season_id = random.randint(0, 999999)
@@ -28,6 +25,7 @@ dpath_template = os.path.join(setupBaseDir, 'excel_template', 'template_blank.xl
 dpath_outfiles = os.path.join(setupBaseDir, 'outfiles')
 result_filename = f"classification_results_{season_id}.xlsx"
 results_path = os.path.join(dpath_outfiles, result_filename)
+
 # Define a new dbc.Tab for the About section with detailed content
 about_content = html.Div([
     html.Br(),
@@ -70,7 +68,6 @@ about_content = html.Div([
            target="_blank")
 ])
 
-
 # Layout
 app.layout = dbc.Container([
     dbc.Row([  # Banner with title and logos
@@ -81,10 +78,16 @@ app.layout = dbc.Container([
     dbc.Row([
         dbc.Col([  # Left column for uploads and operations
             html.Div([
-                dbc.Button("Download Excel Template",
-                           id="btn_download",
-                           color="primary",
-                           className="mb-2"),
+                dbc.Button("Download Excel Template", id="btn_download", color="primary", className="mb-2"),
+                dcc.RadioItems(
+                    id='toggle-analysis',
+                    options=[
+                        {'label': 'Nano', 'value': 'nano'},
+                        {'label': 'RNAseq', 'value': 'rnaseq'}
+                    ],
+                    value='nano',
+                    labelStyle={'display': 'inline-block', 'margin-right': '10px'}
+                ),
                 dcc.Download(id="download-excel"),
                 dcc.Upload(
                     id='upload-data',
@@ -102,6 +105,7 @@ app.layout = dbc.Container([
         ], width=4),
         dbc.Col([  # Right column for tabs and results
             dcc.Store(id='store-classification-results'),  # Stores the classification results invisibly
+            dcc.Store(id='store-rnaseq-analysis', data=False),  # Store for rnaseq_analysis variable
             dbc.Tabs([
                 dbc.Tab(html.Div(id='tab-content-results'), label="Classification Results", tab_id="tab-results"),
                 dbc.Tab("This will be the tutorial.", label="Tutorial", tab_id="tab-tutorial"),
@@ -127,9 +131,10 @@ def download_template(n_clicks):
         Output('preview-upload', 'children')
     ],
     Input('upload-data', 'contents'),
+    State('store-rnaseq-analysis', 'data'),
     prevent_initial_call=True
 )
-def update_output(content):
+def update_output(content, rnaseq_analysis):
     if content is None:
         return None, "No file uploaded."
     content_type, content_string = content.split(',')
@@ -142,7 +147,7 @@ def update_output(content):
     df.to_excel(output_path, index=False)
 
     # Pass the file path to FIRST_PART.process_excel
-    classification_df = FIRST_PART.process_excel(output_path)
+    classification_df = FIRST_PART.process_excel(output_path, rnaseq_analysis)
 
     # Save the classification results to an Excel file
     classification_df.to_excel(results_path, index=False)
@@ -161,7 +166,6 @@ def update_output(content):
     Input('store-classification-results', 'data'),
     prevent_initial_call=True
 )
-
 def render_tab_content(active_tab, data):
     if active_tab != "tab-results" or data is None:
         return None
@@ -178,7 +182,6 @@ def render_tab_content(active_tab, data):
         dbc.Table.from_dataframe(pd.DataFrame(data), striped=True, bordered=True, hover=True),
         html.Br(),
         dcc.Download(id="download-results"),
-
     ])
 
 # Download results as an excel file
@@ -193,6 +196,12 @@ def download_results(n_clicks):
 
     return dcc.send_file(results_path)
 
+@app.callback(
+    Output('store-rnaseq-analysis', 'data'),
+    Input('toggle-analysis', 'value')
+)
+def set_analysis_type(value):
+    return value == 'rnaseq'
+
 if __name__ == '__main__':
-    # app.run_server(host='127.0.0.1', port=8050, debug=True)
     app.run_server(host='0.0.0.0', port=8050, debug=True)
