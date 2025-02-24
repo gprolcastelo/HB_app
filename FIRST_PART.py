@@ -123,7 +123,7 @@ def classify_epi_cpg(t_cols,cpg_val):
     :param cpg_val:
     :return: classification dictionary with column names as keys and classification as values
     """
-    # print('cpg_val:',cpg_val)
+
     classification = {}
     for col in t_cols:
         # When ((1-mean CpGs T/mean CpGs all the NT)*100) > 6.64, then Epi-CB
@@ -163,7 +163,6 @@ def classify_mrs(t_cols, class_14q32, class_cpg, class_qualu, class_c1c2):
         # Moderate 14q32 overexpression
         else:
             classification[col] = 'MRS-2' if class_epi[col] == 'Epi-CB' else 'MRS-1'
-        # print('classification[col]:',classification[col])
     return classification
 
 def process_excel(input_file,rnaseq_analysis):
@@ -188,7 +187,6 @@ def process_excel(input_file,rnaseq_analysis):
     qualu_values = data_op.loc['PUMA_value'].to_dict()
     qualu_values = {k: qualu_values[k] for k in t_cols if k in qualu_values}
 
-    print('scores:',scores)
     classifications_c1c2, percentages_c1c2 = classify_c1c2(scores, 16, vim_values)
     classifications_14q32 = classify_14q32(data, t_cols)
     classifications_cpg = classify_epi_cpg(t_cols,cpg_values)
