@@ -6,9 +6,10 @@ import pandas as pd
 from io import BytesIO
 from jinja2 import Template
 from PIL import Image
-toggle_image = Image.open("assets/nano_rnaseq.png")
-template_image = Image.open("assets/template.png")
-results_image = Image.open("assets/results_overview.png")
+
+toggle_image = Image.open(os.path.join(os.path.dirname(__file__), 'assets', 'nano_rnaseq.png'))
+template_image = Image.open(os.path.join(os.path.dirname(__file__), 'assets', 'template.png'))
+results_image = Image.open(os.path.join(os.path.dirname(__file__), 'assets', 'results_overview.png'))
 
 # global season_id
 season_id = random.randint(0, 999999)
