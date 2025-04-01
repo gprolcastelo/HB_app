@@ -120,7 +120,7 @@ tutorial_content = html.Div([
     html.Img(
         src=toggle_image,
         style={'width': '100%'},
-        alt="Nano or RNA-seq toggle",
+        alt="NanoString or RNA-seq toggle",
     ),
     html.Br(),
     html.P("Once the template is filled (see example below), upload the excel file to the server by either dragging and dropping the file into the designated area or by manually selecting the file."),
@@ -196,6 +196,7 @@ warning_conent = html.Div([
     html.Br(),
     html.P("The MRS does not store any of the data once the site is reloaded or disconnected."),
     html.P("This tool is only for research use. Any commercial or clinical use is not authorized."),
+    html.P("The results are dependent on the quality of the data. We decline any responsibility in case of miss-classification of the samples that could happen"),
     html.Hr(),
 ])
 
@@ -226,7 +227,7 @@ app.layout = dbc.Container([
                 dcc.RadioItems(
                     id='toggle-analysis',
                     options=[
-                        {'label': 'Nano', 'value': 'nano'},
+                        {'label': 'NanoString', 'value': 'nano'},
                         {'label': 'RNAseq', 'value': 'rnaseq'}
                     ],
                     value='nano',
