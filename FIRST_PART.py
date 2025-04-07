@@ -8,7 +8,7 @@ c1genes= ['ALDH2', 'APCS', 'APOC4', 'AQP9', 'C1S', 'CYP2E1', 'GHR', 'HPD'] # 8 g
 # ALDH2, APCS, APOC4, AQP9, C1S, CYP2E1, GHR, HPD
 c2genes = ['AFP', 'BUB1', 'DLG7', 'DUSP9', 'E2F5', 'IGSF1', 'NLE', 'RPL10A'] # 8 genes
 # AFP, BUB1 , DLG7, DUSP9, E2F5, IGSF1, NLE, RPL10A
-vim_gene = 'VIM' # 1 gene
+# vim_gene = 'VIM' # 1 gene
 fqt_genes = ['DLK1', 'MEG3'] # 2 genes
 hk_genes = ['ACTGA1', 'EEF1A1', 'PNN', 'RHOT2'] # 5 genes
 
@@ -58,7 +58,7 @@ def calculate_scores(data, t_cols,rnaseq_analysis=True):
         scores[col] = downregulated + upregulated
     return scores
 
-def classify_c1c2(scores, total_genes, vim_values):
+def classify_c1c2(scores, total_genes):
     """
     Classify the samples based on the C2 score and VIM value.
     :param scores:
@@ -77,10 +77,11 @@ def classify_c1c2(scores, total_genes, vim_values):
         elif percentage < 40:
             classifications[col] = ('C1-subtype', '')
         else:
-            if vim_values[col] > 6.5:
-                classifications[col] = ('C2B', '')
-            else:
-                classifications[col] = ('C2-Pure', '')
+            classifications[col] = ('C2-subtype', '')
+            # if vim_values[col] > 6.5:
+            #     classifications[col] = ('C2B', '')
+            # else:
+            #     classifications[col] = ('C2-Pure', '')
     return classifications, percentages
 
 def classify_14q32(data, t_cols):
@@ -176,9 +177,9 @@ def process_excel(input_file,rnaseq_analysis):
     data_op, data, t_cols, nt_cols = read_and_prepare_data(input_file)
     scores = calculate_scores(data, t_cols,rnaseq_analysis)  # Dynamic split
     # Get VIM values
-    vim_values = data.loc[vim_gene].to_dict()
+    # vim_values = data.loc[vim_gene].to_dict()
     # Exclude 'VIM' column and non-T columns from vim_values if present
-    vim_values = {k: vim_values[k] for k in t_cols if k in vim_values}
+    # vim_values = {k: vim_values[k] for k in t_cols if k in vim_values}
 
     # Get CpG values
     cpg_values = data.loc[cpg_row_name].to_dict()
@@ -187,7 +188,7 @@ def process_excel(input_file,rnaseq_analysis):
     qualu_values = data_op.loc['PUMA_value'].to_dict()
     qualu_values = {k: qualu_values[k] for k in t_cols if k in qualu_values}
 
-    classifications_c1c2, percentages_c1c2 = classify_c1c2(scores, 16, vim_values)
+    classifications_c1c2, percentages_c1c2 = classify_c1c2(scores, 16)
     classifications_14q32 = classify_14q32(data, t_cols)
     classifications_cpg = classify_epi_cpg(t_cols,cpg_values)
     classifications_qualu = classify_epi_qualu(t_cols,qualu_values,data['Mean_NT']['PUMA_value'])
